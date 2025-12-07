@@ -1,0 +1,82 @@
+# ================================================
+# CHALLENGE 1 + CHALLENGE 2 
+# ================================================
+
+from abc import ABC, abstractmethod
+
+
+# ===========================
+# CHALLENGE 1
+# ===========================
+
+class Sensor:
+    def __init__(self, id_sensor, lokasi, jenis):
+        self.id_sensor = id_sensor
+        self.lokasi = lokasi
+        self.jenis = jenis
+
+    def info(self):
+        return f"Sensor[{self.id_sensor}] - Lokasi: {self.lokasi}, Jenis: {self.jenis}"
+
+
+class SensorSeismik(Sensor):
+    def __init__(self, id_sensor, lokasi, jenis, frekuensi_sampling):
+        super().__init__(id_sensor, lokasi, jenis)
+        self.frekuensi_sampling = frekuensi_sampling  # Hz
+
+    def jumlah_sampel(self, durasi_detik):
+        """
+        Menghitung jumlah sampel amplitudo berdasarkan durasi.
+        Rumus: jumlah_sampel = frekuensi_sampling × durasi
+        """
+        return self.frekuensi_sampling * durasi_detik
+
+
+# ===========================
+# CHALLENGE 2
+# ===========================
+
+class Survey(ABC):
+    @abstractmethod
+    def processing(self):
+        pass
+
+
+class SeismicSurvey(Survey):
+    def processing(self):
+        print("Processing Seismic Survey: applying band-pass filtering...")
+
+
+class GravitySurvey(Survey):
+    def processing(self):
+        print("Processing Gravity Survey: performing upward continuation...")
+
+
+class MagnetikSurvey(Survey):
+    def processing(self):
+        print("Processing Magnetic Survey: generating anomaly map...")
+
+
+# ===========================
+# DEMO PENGGABUNGAN
+# ===========================
+
+if __name__ == "__main__":
+    # --- Challenge 1 Demo ---
+    print("\n=== DEMO CHALLENGE 1 ===")
+    sensor1 = SensorSeismik("SX01", "Line-12", "Geophone", 2000)
+
+    print(sensor1.info())
+    print("Jumlah sampel untuk durasi 5 detik:",
+          sensor1.jumlah_sampel(5))
+
+    # --- Challenge 2 Demo ---
+    print("\n=== DEMO CHALLENGE 2 ===")
+    surveys = [
+        SeismicSurvey(),
+        GravitySurvey(),
+        MagnetikSurvey()
+    ]
+
+    for s in surveys:
+        s.processing()
