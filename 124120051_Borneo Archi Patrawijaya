@@ -1,0 +1,44 @@
+
+data = [
+    {"survey": "A", "trace_id": 1, "receiver": "R01", "QC_flag": "GOOD"},
+    {"survey": "A", "trace_id": 2, "receiver": "R02", "QC_flag": "BAD"},
+    {"survey": "A", "trace_id": 3, "receiver": "R01", "QC_flag": "GOOD"},
+
+    {"survey": "B", "trace_id": 10, "receiver": "R03", "QC_flag": "BAD"},
+    {"survey": "B", "trace_id": 11, "receiver": "R03", "QC_flag": "GOOD"},
+    {"survey": "B", "trace_id": 12, "receiver": "R04", "QC_flag": "GOOD"},
+    {"survey": "B", "trace_id": 13, "receiver": "R04", "QC_flag": "GOOD"}
+]
+
+# ==================================================
+# 1. Tampilkan semua trace_id dengan QC_flag = BAD
+# ==================================================
+bad_traces = [row["trace_id"] for row in data if row["QC_flag"] == "BAD"]
+print("Trace ID dengan QC_flag = BAD:", bad_traces)
+
+# ================================================
+# 2. Hitung total jumlah trace dari seluruh survey
+# ================================================
+total_trace = len(data)
+print("Total jumlah trace:", total_trace)
+
+# =====================================================
+# 3. Cari survey yang memiliki jumlah trace paling banyak
+# =====================================================
+from collections import Counter
+
+survey_count = Counter(row["survey"] for row in data)
+survey_terbanyak = survey_count.most_common(1)[0]
+print("Survey dengan jumlah trace terbanyak:", survey_terbanyak)
+
+# ================================================
+# 4. Buat set berisi semua receiver unik
+# ================================================
+receiver_unik = set(row["receiver"] for row in data)
+print("Receiver unik:", receiver_unik)
+
+# ============================================================================
+# 5. Buat dictionary {"receiver": jumlah_trace} = frekuensi kemunculan receiver
+# ============================================================================
+receiver_count = Counter(row["receiver"] for row in data)
+print("Jumlah trace per receiver:", dict(receiver_count))
