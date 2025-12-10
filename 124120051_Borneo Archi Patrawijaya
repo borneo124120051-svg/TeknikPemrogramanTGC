@@ -1,0 +1,118 @@
+# ============================================================
+# ANALISIS DATA GRAVITASI / MIKROGRAVITASI
+# ----------------------------------------
+# Langkah:
+# 1. Load Data
+# 2. Bouguer Correction
+# 3. Regional–Residual Separation
+# 4. SVD (Second Vertical Derivative)
+# 5. FHD (First Horizontal Derivative)
+# 6. Plotting
+# ============================================================
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.interpolate import griddata
+from scipy.ndimage import gaussian_filter
+
+# ------------------------------------------------------------
+# 1. LOAD DATA
+# ------------------------------------------------------------
+# NOTE: Ganti ini dengan nama file CSV kamu
+file = "data_gravitasi.csv"
+
+df = pd.read_csv(file)
+
+print("5 data teratas:")
+print(df.head())
+
+# Pastikan kolom sesuai
+x = df["x"].values
+y = df["y"].values
+z = df["elevation"].values
+g_obs = df["gravity"].values
+
+# ------------------------------------------------------------
+# 2. BOUGUER CORRECTION (versi sederhana)
+# ------------------------------------------------------------
+rho = 2.67  # densitas batuan (g/cm3)
+G = 0.00004193  # konstanta gravitasi Bouguer slab
+
+# Bouguer correction = 2π G ρ h
+bouguer_corr = 2 * np.pi * G * rho * z
+
+anom_bouguer = g_obs - bouguer_corr
+
+print("Anomali Bouguer dihitung.")
+
+# ------------------------------------------------------------
+# 3. INTERPOLASI DATA KE GRID
+# ------------------------------------------------------------
+grid_x, grid_y = np.mgrid[
+    min(x):max(x):200j,
+    min(y):max(y):200j
+]
+
+grid_bouguer = griddata(
+    (x, y),
+    anom_bouguer,
+    (grid_x, grid_y),
+    method="cubic"
+)
+
+# ------------------------------------------------------------
+# 4. REGIONAL–RESIDUAL SEPARATION
+# ------------------------------------------------------------
+regional = gaussian_filter(grid_bouguer, sigma=20)
+residual = grid_bouguer - regional
+
+# ------------------------------------------------------------
+# 5. TURUNAN: SVD & FHD
+# ------------------------------------------------------------
+dx = (max(x) - min(x)) / 200
+dy = (max(y) - min(y)) / 200
+
+# FHD (First Horizontal Derivative)
+dF_dx = np.gradient(residual, axis=0) / dx
+dF_dy = np.gradient(residual, axis=1) / dy
+FHD = np.sqrt(dF_dx**2 + dF_dy**2)
+
+# SVD (Second Vertical Derivative)
+d2F = np.gradient(np.gradient(residual)[0])[0]
+
+print("SVD & FHD selesai dihitung.")
+
+# ------------------------------------------------------------
+# 6. PLOTTING
+# ------------------------------------------------------------
+plt.figure(figsize=(16, 10))
+
+# Bouguer
+plt.subplot(2,2,1)
+plt.title("Anomali Bouguer")
+plt.contourf(grid_x, grid_y, grid_bouguer, 40, cmap="jet")
+plt.colorbar()
+
+# Residual
+plt.subplot(2,2,2)
+plt.title("Residual")
+plt.contourf(grid_x, grid_y, residual, 40, cmap="seismic")
+plt.colorbar()
+
+# FHD
+plt.subplot(2,2,3)
+plt.title("FHD (First Horizontal Derivative)")
+plt.contourf(grid_x, grid_y, FHD, 40, cmap="magma")
+plt.colorbar()
+
+# SVD
+plt.subplot(2,2,4)
+plt.title("SVD (Second Vertical Derivative)")
+plt.contourf(grid_x, grid_y, d2F, 40, cmap="viridis")
+plt.colorbar()
+
+plt.tight_layout()
+plt.show()
+
+print("Plot selesai dibuat.")
